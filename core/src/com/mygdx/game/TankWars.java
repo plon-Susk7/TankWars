@@ -1,95 +1,134 @@
 package com.mygdx.game;
 
-import bullet.CustomBullet;
 import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.ScreenUtils;
-
-import java.util.ArrayList;
-
-public class TankWars extends ApplicationAdapter {
-	private Texture tankAImage;
-	private Texture tankBImage;
-
-	private Rectangle tankA;
+import missiles.MissileA;
+import players.Player;
+import screen.GameScreen;
+import screen.MainMenu;
 
 
-	private OrthographicCamera camera;
-	private SpriteBatch batch;
+public class Tankwars extends Game {
+//	SpriteBatch batch;
+//	Texture img;
+//
+//	private static  OrthographicCamera camera;
+//	public static World world;
+//	public static Box2DDebugRenderer debugRenderer;
+//	public static Body playerBodyA;
+//	public static Body missileBodyA;
+//
+//	public static CircleShape circle;
+//
+//	private static Player playerA;
+//	private static MissileA missileA;
+//	private static Texture tex;
 
-	CustomBullet bullet;
+	public static  SpriteBatch batch;
+	public static OrthographicCamera camera;
+	public BitmapFont font;
 
-	ArrayList<CustomBullet> bullets = new ArrayList<>();
+
+
 
 	@Override
 	public void create () {
-		tankAImage = new Texture(Gdx.files.internal("Frost.png"));
+//		batch = new SpriteBatch();
+//		camera = new OrthographicCamera();
+//		camera.setToOrtho(false,960,640);
+//		batch = new SpriteBatch();
+//		tex = new Texture("bullet.png");
+//		debugRenderer = new Box2DDebugRenderer();
+//		camera = new OrthographicCamera();
+//		camera.setToOrtho(false,960,640);
+//		world = new World(new Vector2(0,-30),false);
+//
+//		//Defining player A
+//		playerA = new Player(world);
+//		playerBodyA = playerA.getBody();
+//
+//		//Code needed for debugging only
+//		circle = new CircleShape();
+//		circle.setRadius(20f);
+//		FixtureDef fixtureDef = new FixtureDef();
+//		fixtureDef.shape = circle;
+//		fixtureDef.density = 0.5f;
+//		fixtureDef.friction = 20f;
+//		Fixture fixture = playerBodyA.createFixture(fixtureDef);
+//
+//
+//
+//
+//
+//// Create our fixture and attach it to the body
+//
+//		BodyDef groundBodyDef = new BodyDef();
+//// Set its world position
+//		groundBodyDef.position.set(new Vector2(0, 10));
+//
+//// Create a body from the definition and add it to the world
+//		Body groundBody = world.createBody(groundBodyDef);
+//
+//// Create a polygon shape
+//		PolygonShape groundBox = new PolygonShape();
+//// Set the polygon shape as a box which is twice the size of our view port and 20 high
+//// (setAsBox takes half-width and half-height as arguments)
+//		groundBox.setAsBox(camera.viewportWidth, 10.0f);
+//// Create a fixture from our polygon shape and add it to our ground body
+//		groundBody.createFixture(groundBox, 0.0f);
 
-		camera = new OrthographicCamera();
-		camera.setToOrtho(false,800,480);
 		batch = new SpriteBatch();
-		tankA = new Rectangle();
-
-////		tankA.width = 64;
-////		tankA.height = 64;
+		font = new BitmapFont(); // use libGDX's default Arial font
+		this.setScreen(new MainMenu(this));
 	}
+
+
 
 	@Override
 	public void render () {
-
-		//movement code
-		ScreenUtils.clear(0,0,0,1);
-		camera.update();
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		batch.draw(tankAImage,tankA.x,tankA.y);
-		batch.end();
-		if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) tankA.x -= 2 ;
-		if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) tankA.x += 2;
-
-		if(tankA.x < 0) tankA.x = 0;
-		if(tankA.x > 800 - 64) tankA.x = 800 - 64;
-
-		for(CustomBullet x:bullets){
-			x.render(batch);
-		}
-
-		for(CustomBullet x:bullets){
-			x.x+=300*Gdx.graphics.getDeltaTime();
-		}
-
-		if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-			bullet = new CustomBullet(tankA.x,tankA.y);
-			bullets.add(bullet);
-		}
-
-//		for(CustomBullet x:bullets){
-//			x.render(batch);
-//		}
-//		for(CustomBullet x : bullets){
-//			x.update(Gdx.graphics.getDeltaTime());
+//		world.step(1/60f,6,2);
+//		ScreenUtils.clear(0, 0, 0, 1);
+//		debugRenderer.render(world, camera.combined);
+//
+//		//Player A's mechanisms
+//		playerA.render(batch);
+//
+//		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)){
+//			playerA.moveRight(playerBodyA);
 //		}
 //
-//		//shooting code
-//		if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-//			bullets.add(new CustomBullet(tankA.x,tankA.y));
+//		if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)){
+//			playerA.moveLeft(playerBodyA);
+//		}
+//
+//
+//		if(Gdx.input.isKeyJustPressed(Input.Keys.A)){
+//			System.out.println("Shots Fired!");
+//			missileA = new MissileA(world,playerBodyA);
+//			missileBodyA = missileA.getMissileBody();
+//			missileBodyA.createFixture(missileA.getFixture());
+//			missileA.launchMissile(missileBodyA);
+//			System.out.println(Gdx.input.getX()+" "+Gdx.input.getY());
+//			missileA.render(batch,playerBodyA);
 //		}
 
-
-
-
+		super.render();
 
 	}
 
 	@Override
 	public void dispose () {
-		batch.dispose();
-		tankAImage.dispose();
+	//		circle.dispose();
+	//		playerA.dispose();
 
 	}
 }
