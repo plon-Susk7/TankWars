@@ -14,11 +14,11 @@ public class MissileA {
     private static FixtureDef missileFixture;
 
     public MissileA(World world, Body playerBody){
-        texture = new Texture("Frost.png");
+        texture = new Texture("bullet.png");
         missileDef = new BodyDef();
         missileDef.type = BodyDef.BodyType.DynamicBody;
         missileDef.position.set(playerBody.getPosition().x+20, playerBody.getPosition().y+10);
-        missileDef.fixedRotation = true;
+        missileDef.fixedRotation = false;
         missileBody= world.createBody(missileDef);
 
         CircleShape circle = new CircleShape();
@@ -41,9 +41,16 @@ public class MissileA {
     public void render(SpriteBatch batch,Body playerBody){
         batch.begin();
         System.out.println(playerBody.getPosition());
-        //batch.draw(texture,playerBody.getPosition().x-16,playerBody.getPosition().y-16);
-        //batch.draw(texture, 200,200);
+        //this.update(delta);
+        // batch.draw(texture,playerBody.getPosition().x-16,playerBody.getPosition().y-16);
+        batch.draw(texture, missileBody.getPosition().x,missileBody.getPosition().y);
         batch.end();
+    }
+
+    public void update(float delta){
+        missileBody.getPosition().x = missileBody.getLinearVelocity().x*delta;
+        missileBody.getPosition().y = missileBody.getLinearVelocity().y*delta;
+        System.out.println(missileBody.getPosition());
     }
 
     public Body getMissileBody(){

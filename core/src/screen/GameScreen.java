@@ -13,6 +13,8 @@ import com.mygdx.game.Tankwars;
 import missiles.MissileA;
 import players.Player;
 
+import java.util.ArrayList;
+
 public class GameScreen implements Screen{
     final Tankwars game;
     private static Texture tex;
@@ -25,6 +27,7 @@ public class GameScreen implements Screen{
 
     private static Player playerA;
 	private static MissileA missileA;
+    ArrayList<MissileA> bulletList = new ArrayList<>();
 
     public GameScreen(final Tankwars game){
         this.game = game;
@@ -64,6 +67,8 @@ public class GameScreen implements Screen{
 		groundBox.setAsBox(camera.viewportWidth, 10.0f);
 // Create a fixture from our polygon shape and add it to our ground body
 		groundBody.createFixture(groundBox, 0.0f);
+
+
     }
 
     @Override
@@ -85,14 +90,25 @@ public class GameScreen implements Screen{
 			playerA.moveLeft(playerABody);
 		}
 
+
+
+        for(MissileA x: bulletList){
+            x.update(Gdx.graphics.getDeltaTime());
+        }
+
+        for(MissileA x:bulletList){
+            x.render(batch,playerABody);
+        }
+
         if(Gdx.input.isKeyJustPressed(Input.Keys.A)){
 			System.out.println("Shots Fired!");
 			missileA = new MissileA(world,playerABody);
 			missileBodyA = missileA.getMissileBody();
 			missileBodyA.createFixture(missileA.getFixture());
+            missileBodyA.createFixture(missileA.getFixture());
 			missileA.launchMissile(missileBodyA);
-			System.out.println(Gdx.input.getX()+" "+Gdx.input.getY());
-			missileA.render(batch,playerABody);
+//			System.out.println(Gdx.input.getX()+" "+Gdx.input.getY());
+            bulletList.add(missileA);
 		}
     }
 
