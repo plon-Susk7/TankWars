@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -28,11 +29,18 @@ public class tankSelectionScreen implements Screen {
     private TextureAtlas atlas;
     private Skin skin;
     private BitmapFont nextFont;
-    private Table table1,table2;
+    private BitmapFont hud;
+    private Table table1,table2,table3;
     private TextButton nextButton,selectButton,nextButtonB,selectButtonB;
+    private TextButton BackButton;
+
+    private static Texture background;
 
     private static ArrayList<Texture> textureArrayPlayerA = new ArrayList<>();
     private static ArrayList<Texture> textureArrayPlayerB = new ArrayList<>();
+
+    private static ArrayList<Texture> passingArray = new ArrayList<>();
+
     static int i = 0;
     static int j = 0;
 
@@ -53,29 +61,27 @@ public class tankSelectionScreen implements Screen {
 
     @Override
     public void show() {
-//        tank_1 = new Texture("Abrams.png");
-//        tank_2 = new Texture("Frost.png");
-//        tank_3 = new Texture("Blazer.png");
-//        textureArray.add(tank_1);
-//        textureArray.add(tank_2);
-//        textureArray.add(tank_3);
 
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
+        background = new Texture(Gdx.files.internal("bg2.png"));
+        hud = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
         nextFont = new BitmapFont(Gdx.files.internal("black.fnt"),false);
         atlas = new TextureAtlas("button.pack");
         skin = new Skin(atlas);
 
         table1 = new Table(skin);
         table2 = new Table(skin);
+        table3 = new Table(skin);
 
-        table1.setBounds(0,0,350,100);
+        table1.setBounds(0,0,450,100);
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
         textButtonStyle.up = skin.getDrawable("button.up");
         textButtonStyle.down = skin.getDrawable("button.down");
         textButtonStyle.font = nextFont;
 
-        table2.setBounds(0,0,1600,100);
+        table2.setBounds(0,0,1500,100);
+        table3.setBounds(0,0,200,1200);
 
         nextButton = new TextButton("Next",textButtonStyle);
         selectButton =new TextButton("Select",textButtonStyle);
@@ -83,16 +89,21 @@ public class tankSelectionScreen implements Screen {
         nextButtonB = new TextButton("Next",textButtonStyle);
         selectButtonB =new TextButton("Select",textButtonStyle);
 
+        BackButton = new TextButton("Main Menu", textButtonStyle);
+
         table1.add(nextButton).pad(10);
         table1.add(selectButton).pad(10);
 
         table2.add(nextButtonB).pad(10);
         table2.add(selectButtonB).pad(10);
 
+        table3.add(BackButton).pad(10);
+
         table1.setDebug(true);
         table2.setDebug(true);
         stage.addActor(table1);
         stage.addActor(table2);
+        stage.addActor(table3);
 
         nextButtonB.addListener( new ClickListener() {
             @Override
@@ -113,35 +124,67 @@ public class tankSelectionScreen implements Screen {
                 }
             };
         });
+
+        selectButton.addListener( new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                passingArray.add(textureArrayPlayerA.get(i));
+                if(passingArray.size()==2){
+                    game.setScreen(new GameScreen(game,passingArray));
+                }
+            };
+        });
+
+        selectButtonB.addListener( new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                passingArray.add(textureArrayPlayerB.get(j));
+                if(passingArray.size()==2){
+                    game.setScreen(new GameScreen(game,passingArray));
+                }
+            };
+        });
+
+
     }
 
 
     public void incr(){
         i++;
     }
+
+
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0, 0, 1, 1);
+        ScreenUtils.clear(0, 0, 0, 1);
         camera.update();
+
+        game.batch.begin();
+        game.batch.draw(background,0,0);
+        game.batch.end();
+
         game.batch.setProjectionMatrix(camera.combined);
         stage.act(delta);
         stage.draw();
+
+
 
         game.batch.begin();
         game.batch.draw(textureArrayPlayerA.get(i),50,200);
         game.batch.end();
 
+        Sprite sprite;
         game.batch.begin();
-        game.batch.draw(textureArrayPlayerB.get(j),600,200);
+        sprite = new Sprite(textureArrayPlayerB.get(j));
+        sprite.flip(true,false);
+        game.batch.draw(sprite,600,200);
         game.batch.end();
 
-//        nextButton.addListener(new ClickListener() {
-//            @Override
-//            public void clicked(InputEvent event,float x,float y){
-//                i++;
-//            }
-//        });
-
+        game.batch.begin();
+        //nextFont.setScale(.2f);
+        hud.draw(game.batch, "Player A",120 ,500);
+        hud.draw(game.batch, "Player B",650 ,500);
+        game.batch.end();
 
     }
 
@@ -167,6 +210,11 @@ public class tankSelectionScreen implements Screen {
 
     @Override
     public void dispose() {
-
+        stage.dispose();
+        nextFont.dispose();
+        tank_1.dispose();
+        tank_2.dispose();
+        tank_3.dispose();
+        nextFont.dispose();
     }
 }

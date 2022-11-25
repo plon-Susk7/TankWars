@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.*;
 
-public class MissileA {
+public class MissileA implements Missile {
     public static BodyDef missileDef;
     public static Body missileBody;
     private static Texture texture;
@@ -35,9 +35,12 @@ public class MissileA {
         return missileFixture;
     }
 
+    @Override
     public void launchMissile(Body body){
         body.setLinearVelocity(Gdx.input.getX(),640 - Gdx.input.getY());
     }
+
+    @Override
     public void render(SpriteBatch batch,Body playerBody){
         batch.begin();
         System.out.println(playerBody.getPosition());
@@ -47,16 +50,19 @@ public class MissileA {
         batch.end();
     }
 
+    @Override
     public void update(float delta){
         missileBody.getPosition().x = missileBody.getLinearVelocity().x*delta;
         missileBody.getPosition().y = missileBody.getLinearVelocity().y*delta;
         System.out.println(missileBody.getPosition());
     }
 
+    @Override
     public Body getMissileBody(){
         return missileBody;
     }
 
+    @Override
     public void dispose(){
         texture.dispose();
     }
