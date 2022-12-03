@@ -5,17 +5,24 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Tankwars;
 import missiles.MissileA;
@@ -50,10 +57,11 @@ public class GameScreen implements Screen{
     private BitmapFont font;
 
     private Table table1,table2,table3;
-    private TextButton forwardButtonA,backButtonA,forwardButtonB,backButtonB;
+    private TextButton forwardButtonA,backButtonA,forwardButtonB,backButtonB,resume,save,backToMenu;
     private TextButton BackButton;
     private static ShapeRenderer shapeRendererA,shapeRendererB;
     private static BitmapFont playerAHud,playerBHud;
+    private static boolean isPause = false;
 
     public GameScreen(final Tankwars game,ArrayList<Texture> playersTexture){
         this.game = game;
@@ -68,7 +76,9 @@ public class GameScreen implements Screen{
     @Override
     public void show() {
         texA = playersTexture.get(0);
+        System.out.println(texA);
         texB = playersTexture.get(1);
+        System.out.println(texB);
         world = new World(new Vector2(0,-30),false);
         shapeRendererA = new ShapeRenderer();
         shapeRendererB= new ShapeRenderer();
@@ -142,12 +152,65 @@ public class GameScreen implements Screen{
 
         table3.add(BackButton).pad(10);
 
+
+
         table1.setDebug(true);
         table2.setDebug(true);
         stage.addActor(table1);
         stage.addActor(table2);
         stage.addActor(table3);
 
+
+        Pixmap bgPixmap = new Pixmap(1,1, Pixmap.Format.RGB565);
+        bgPixmap.setColor(Color.RED);
+        bgPixmap.fill();
+        TextureRegionDrawable Bg = new TextureRegionDrawable(new TextureRegion(new Texture(bgPixmap)));
+
+
+        Window.WindowStyle windowStyle = new Window.WindowStyle();
+        windowStyle.titleFont = playerAHud;
+        windowStyle.titleFontColor = Color.GREEN;
+        windowStyle.background = Bg;
+
+
+
+
+        resume = new TextButton("Resume",textButtonStyle);
+        save = new TextButton("Save",textButtonStyle);
+        backToMenu = new TextButton("Main Menu",textButtonStyle);
+
+        final Window pause = new Window("PAUSE",windowStyle);
+        pause.add(resume).pad(10).row();
+        pause.add(save).pad(10).row();
+        pause.add(backToMenu).pad(10).row();
+        pause.setSize(stage.getWidth(),stage.getHeight());
+        pause.setVisible(false);
+
+        BackButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                pause.setVisible(true);
+                isPause = true;
+            }
+        });
+
+        backToMenu.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                isPause = false;
+                game.setScreen(new MainMenu(game));
+            }
+        });
+
+
+        resume.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                pause.setVisible(false);
+                isPause = false;
+            }
+        });
+        stage.addActor(pause);
     }
 
     @Override
@@ -157,53 +220,79 @@ public class GameScreen implements Screen{
         stage.act(delta);
         stage.draw();
         debugRenderer.render(world, camera.combined);
-        playerA.render(batch);
-        playerB.render(batch);
-        		if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)){
-			playerA.moveRight(playerABody);
-		}
+        if(isPause==false) {
+            playerA.render(batch);
+            playerB.render(batch);
 
-		if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)){
-			playerA.moveLeft(playerABody);
-		}
 
-        if(Gdx.input.isKeyJustPressed(Input.Keys.B)){
-            System.out.println("B is pressed!");
-            game.setScreen(new pauseScreen(game));
+            forwardButtonA.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    playerA.moveRight(playerABody);
+                }
+            });
+
+            backButtonA.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    playerA.moveLeft(playerABody);
+                }
+            });
+
+            forwardButtonB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    playerB.moveRight(playerBBody);
+                }
+            });
+
+            backButtonB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    playerB.moveLeft(playerBBody);
+                }
+            });
+
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.B)) {
+                System.out.println("B is pressed!");
+                game.setScreen(new pauseScreen(game));
+            }
+
+            for (MissileA x : bulletList) {
+                x.update(Gdx.graphics.getDeltaTime());
+            }
+
+            for (MissileA x : bulletList) {
+                x.render(batch, playerABody);
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+                System.out.println("Shots Fired!");
+                missileA = new MissileA(world, playerABody);
+                missileBodyA = missileA.getMissileBody();
+                missileBodyA.createFixture(missileA.getFixture());
+                missileBodyA.createFixture(missileA.getFixture());
+                missileA.launchMissile(missileBodyA);
+                bulletList.add(missileA);
+            }
+
+
+            batch.begin();
+            playerAHud.draw(game.batch, "Player A", 150, 600);
+            playerBHud.draw(game.batch, "Player B", 650, 600);
+            batch.end();
+
+            shapeRendererA.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRendererA.setColor(Color.GREEN);
+            shapeRendererA.rect(150, 550, 150, 10);
+            shapeRendererA.end();
+
+            shapeRendererB.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRendererB.setColor(Color.GREEN);
+            shapeRendererB.rect(650, 550, 150, 10);
+            shapeRendererB.end();
         }
-
-        for(MissileA x: bulletList){
-            x.update(Gdx.graphics.getDeltaTime());
-        }
-
-        for(MissileA x:bulletList){
-            x.render(batch,playerABody);
-        }
-
-        if(Gdx.input.isKeyJustPressed(Input.Keys.A)){
-			System.out.println("Shots Fired!");
-			missileA = new MissileA(world,playerABody);
-			missileBodyA = missileA.getMissileBody();
-			missileBodyA.createFixture(missileA.getFixture());
-            missileBodyA.createFixture(missileA.getFixture());
-			missileA.launchMissile(missileBodyA);
-            bulletList.add(missileA);
-		}
-
-        batch.begin();
-        playerAHud.draw(game.batch, "Player A",150 ,600);
-        playerBHud.draw(game.batch, "Player B",650 ,600);
-        batch.end();
-
-        shapeRendererA.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRendererA.setColor(Color.GREEN);
-        shapeRendererA.rect(150, 550, 150, 10);
-        shapeRendererA.end();
-
-        shapeRendererB.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRendererB.setColor(Color.GREEN);
-        shapeRendererB.rect(650, 550, 150, 10);
-        shapeRendererB.end();
     }
 
     @Override

@@ -130,7 +130,16 @@ public class tankSelectionScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 passingArray.add(textureArrayPlayerA.get(i));
                 if(passingArray.size()==2){
-                    game.setScreen(new GameScreen(game,passingArray));
+                    i = 0;
+                    j = 0;
+                    ArrayList<Texture> temp = new ArrayList<>();
+                    for(int k=0;k<2;k++){
+                        System.out.println(passingArray.get(k));
+                        temp.add(passingArray.get(k));
+                    }
+                    passingArray.clear();
+                    game.setScreen(new GameScreen(game,temp));
+
                 }
             };
         });
@@ -140,7 +149,15 @@ public class tankSelectionScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 passingArray.add(textureArrayPlayerB.get(j));
                 if(passingArray.size()==2){
-                    game.setScreen(new GameScreen(game,passingArray));
+                    i = 0;
+                    j = 0;
+                    ArrayList<Texture> temp = new ArrayList<>();
+                    for(int k=0;k<2;k++){
+                        System.out.println(passingArray.get(k));
+                        temp.add(passingArray.get(k));
+                    }
+                    passingArray.clear();
+                    game.setScreen(new GameScreen(game,temp));
                 }
             };
         });
