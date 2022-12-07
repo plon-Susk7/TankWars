@@ -2,6 +2,7 @@ package screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -12,6 +13,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -21,10 +24,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Tankwars;
+import maps.TileMaps;
 import missiles.MissileA;
 import players.Player;
 import players.PlayerA;
@@ -62,7 +65,11 @@ public class GameScreen implements Screen{
     private static ShapeRenderer shapeRendererA,shapeRendererB;
     private static BitmapFont playerAHud,playerBHud;
     private static boolean isPause = false;
+    static int i = 0;
 
+    private static OrthogonalTiledMapRenderer orthogonalTiledMapRenderer;
+    private static TileMaps tileMaps;
+    private static TiledMap map;
     public GameScreen(final Tankwars game,ArrayList<Texture> playersTexture){
         this.game = game;
         batch = this.game.batch;
@@ -70,18 +77,22 @@ public class GameScreen implements Screen{
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 960, 640);
         this.playersTexture = playersTexture;
+        this.tileMaps = new TileMaps();
+        this.orthogonalTiledMapRenderer = tileMaps.setupMap();
 
     }
 
     @Override
     public void show() {
+
         texA = playersTexture.get(0);
         System.out.println(texA);
         texB = playersTexture.get(1);
         System.out.println(texB);
-        world = new World(new Vector2(0,-30),false);
+        world = new World(new Vector2(0,-10),false);
         shapeRendererA = new ShapeRenderer();
         shapeRendererB= new ShapeRenderer();
+
         playerA = new PlayerA(world,playersTexture.get(0));
         playerABody = playerA.getBody();
 
@@ -108,13 +119,13 @@ public class GameScreen implements Screen{
         fixtureDef1.friction = 20f;
         Fixture fixture1 = playerBBody.createFixture(fixtureDef1);
 
-
-        BodyDef groundBodyDef = new BodyDef();
-        groundBodyDef.position.set(new Vector2(0, 200));
-        Body groundBody = world.createBody(groundBodyDef);
-        PolygonShape groundBox = new PolygonShape();
-        groundBox.setAsBox(camera.viewportWidth, 10.0f);
-        groundBody.createFixture(groundBox, 0.0f);
+//
+//        BodyDef groundBodyDef = new BodyDef();
+//        groundBodyDef.position.set(new Vector2(0, 200));
+//        Body groundBody = world.createBody(groundBodyDef);
+//        PolygonShape groundBox = new PolygonShape();
+//        groundBox.setAsBox(camera.viewportWidth, 10.0f);
+//        groundBody.createFixture(groundBox, 0.0f);
 
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
@@ -194,6 +205,19 @@ public class GameScreen implements Screen{
             }
         });
 
+        save.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Preferences prefs = Gdx.app.getPreferences("myPrefs");
+                prefs.putInteger("name", i);
+                i++;
+
+                prefs.flush();
+                System.out.println(prefs);
+
+            }
+        });
+
         backToMenu.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -219,12 +243,20 @@ public class GameScreen implements Screen{
         ScreenUtils.clear(0, 0, 0, 1);
         stage.act(delta);
         stage.draw();
+
+
+        orthogonalTiledMapRenderer.setView(camera);
+        map = tileMaps.getMap();
+        tileMaps.parseTileObjectLayer(world,map.getLayers().get("object").getObjects());
         debugRenderer.render(world, camera.combined);
+
         if(isPause==false) {
+            orthogonalTiledMapRenderer.render();
+
             playerA.render(batch);
             playerB.render(batch);
 
-
+            //Player Movement
             forwardButtonA.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
@@ -252,12 +284,15 @@ public class GameScreen implements Screen{
                     playerB.moveLeft(playerBBody);
                 }
             });
+            //Player Movement
 
 
+            //pause screen
             if (Gdx.input.isKeyJustPressed(Input.Keys.B)) {
                 System.out.println("B is pressed!");
                 game.setScreen(new pauseScreen(game));
             }
+
 
             for (MissileA x : bulletList) {
                 x.update(Gdx.graphics.getDeltaTime());
@@ -292,6 +327,9 @@ public class GameScreen implements Screen{
             shapeRendererB.setColor(Color.GREEN);
             shapeRendererB.rect(650, 550, 150, 10);
             shapeRendererB.end();
+
+
+
         }
     }
 
@@ -318,5 +356,6 @@ public class GameScreen implements Screen{
     @Override
     public void dispose() {
         texA.dispose();
+        tileMaps.dispose();
     }
 }

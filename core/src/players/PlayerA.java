@@ -1,12 +1,9 @@
 package players;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.World;
 
 public class PlayerA implements Player{
@@ -45,7 +42,7 @@ public class PlayerA implements Player{
     @Override
     public void render(SpriteBatch batch){
         batch.begin();
-        batch.draw(texture,body.getPosition().x-50,body.getPosition().y-28,texture.getWidth()/3,texture.getHeight()/3);
+        batch.draw(texture,body.getPosition().x-50,body.getPosition().y-28,texture.getWidth()/4,texture.getHeight()/4);
         batch.end();
     }
 
