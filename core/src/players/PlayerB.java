@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.World;
+import missiles.MissileA;
+
+import static screen.GameScreen.missileBodyA;
 
 public class PlayerB implements Player{
 
@@ -14,6 +17,8 @@ public class PlayerB implements Player{
     private static Body body;
     private static Texture texture;
 
+    private static int healthPoints;
+
     public PlayerB(World world, Texture tex){
         texture = tex;
         bodyDef = new BodyDef();
@@ -21,6 +26,8 @@ public class PlayerB implements Player{
         bodyDef.position.set(900,500);
         bodyDef.fixedRotation = true;
         body = world.createBody(bodyDef);
+        body.setUserData("playerb");
+        healthPoints = 150;
     }
 
     @Override
@@ -47,6 +54,25 @@ public class PlayerB implements Player{
         sprite.flip(true,false);
         batch.draw(sprite,body.getPosition().x-50,body.getPosition().y-28,texture.getWidth()/3,texture.getHeight()/3);
         batch.end();
+    }
+
+    @Override
+    public MissileA shoot(World world) {
+        MissileA missileA;
+        missileA = new MissileA(world, body);
+        missileBodyA = missileA.getMissileBody();
+        missileBodyA.createFixture(missileA.getFixture());
+        missileBodyA.createFixture(missileA.getFixture());
+        missileA.launchMissile(missileBodyA);
+        return missileA;
+    }
+
+    public int getHealthPoints(){
+        return healthPoints;
+    }
+
+    public void setHealthPoints(int x){
+        healthPoints-=x;
     }
 
     @Override

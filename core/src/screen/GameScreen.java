@@ -27,7 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Tankwars;
-import maps.TileMaps;
+import maps.TileMaps0;
 import missiles.MissileA;
 import players.Player;
 import players.PlayerA;
@@ -59,16 +59,19 @@ public class GameScreen implements Screen{
     private Skin skin;
     private BitmapFont font;
 
-    private Table table1,table2,table3;
+    private Table table1,table2,table3,table4,table5;
     private TextButton forwardButtonA,backButtonA,forwardButtonB,backButtonB,resume,save,backToMenu;
+    private TextButton powerA,directionA,powerB,directionB;
     private TextButton BackButton;
     private static ShapeRenderer shapeRendererA,shapeRendererB;
-    private static BitmapFont playerAHud,playerBHud;
+    private static BitmapFont playerAHud,playerBHud,playerApower,playerBpower,playerADirection,playerBDirection;
     private static boolean isPause = false;
     static int i = 0;
 
+    private static ArrayList<Body> tobeDeleted = new ArrayList<>();
+
     private static OrthogonalTiledMapRenderer orthogonalTiledMapRenderer;
-    private static TileMaps tileMaps;
+    private static TileMaps0 tileMaps;
     private static TiledMap map;
     public GameScreen(final Tankwars game,ArrayList<Texture> playersTexture){
         this.game = game;
@@ -77,7 +80,7 @@ public class GameScreen implements Screen{
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 960, 640);
         this.playersTexture = playersTexture;
-        this.tileMaps = new TileMaps();
+        this.tileMaps = new TileMaps0();
         this.orthogonalTiledMapRenderer = tileMaps.setupMap();
 
     }
@@ -89,7 +92,8 @@ public class GameScreen implements Screen{
         System.out.println(texA);
         texB = playersTexture.get(1);
         System.out.println(texB);
-        world = new World(new Vector2(0,-10),false);
+        world = new World(new Vector2(0,-30),false);
+
         shapeRendererA = new ShapeRenderer();
         shapeRendererB= new ShapeRenderer();
 
@@ -98,13 +102,16 @@ public class GameScreen implements Screen{
 
         playerAHud = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
         playerBHud = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
+
+        playerApower = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
+        playerADirection = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
         // Code needed for debugging only
         CircleShape circle = new CircleShape();
         circle.setRadius(20f);
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = circle;
         fixtureDef.density = 0.5f;
-        fixtureDef.friction = 20f;
+        fixtureDef.friction = 5f;
         Fixture fixture = playerABody.createFixture(fixtureDef);
 
         playerB = new PlayerB(world,playersTexture.get(1));
@@ -116,16 +123,9 @@ public class GameScreen implements Screen{
         FixtureDef fixtureDef1 = new FixtureDef();
         fixtureDef1.shape = circle;
         fixtureDef1.density = 0.5f;
-        fixtureDef1.friction = 20f;
+        fixtureDef1.friction = 5f;
         Fixture fixture1 = playerBBody.createFixture(fixtureDef1);
 
-//
-//        BodyDef groundBodyDef = new BodyDef();
-//        groundBodyDef.position.set(new Vector2(0, 200));
-//        Body groundBody = world.createBody(groundBodyDef);
-//        PolygonShape groundBox = new PolygonShape();
-//        groundBox.setAsBox(camera.viewportWidth, 10.0f);
-//        groundBody.createFixture(groundBox, 0.0f);
 
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
@@ -136,6 +136,9 @@ public class GameScreen implements Screen{
         table1 = new Table(skin);
         table2 = new Table(skin);
         table3 = new Table(skin);
+        table4 = new Table(skin);
+        table5 = new Table(skin);
+
         table1.setPosition(60,100);
         table2.setPosition(900,100);
         //table1.setBounds(0,0,100,300);
@@ -155,6 +158,19 @@ public class GameScreen implements Screen{
 
         BackButton = new TextButton("Pause", textButtonStyle);
 
+
+        powerA = new TextButton("Power",textButtonStyle);
+        directionA = new TextButton("Direc",textButtonStyle);
+
+        powerB = new TextButton("Power",textButtonStyle);
+        directionB = new TextButton("Direc",textButtonStyle);
+
+        table4.add(powerA).pad(20);
+        table4.add(directionA).pad(20);
+
+        table5.add(powerB);
+        table5.add(directionB);
+
         table1.add(backButtonA).pad(10);
         table1.add(forwardButtonA).pad(10);
 
@@ -163,13 +179,16 @@ public class GameScreen implements Screen{
 
         table3.add(BackButton).pad(10);
 
-
+        table4.setPosition(100,50);
+        table5.setPosition(860,50);
 
         table1.setDebug(true);
         table2.setDebug(true);
         stage.addActor(table1);
         stage.addActor(table2);
         stage.addActor(table3);
+        stage.addActor(table4);
+        stage.addActor(table5);
 
 
         Pixmap bgPixmap = new Pixmap(1,1, Pixmap.Format.RGB565);
@@ -182,8 +201,6 @@ public class GameScreen implements Screen{
         windowStyle.titleFont = playerAHud;
         windowStyle.titleFontColor = Color.GREEN;
         windowStyle.background = Bg;
-
-
 
 
         resume = new TextButton("Resume",textButtonStyle);
@@ -237,12 +254,76 @@ public class GameScreen implements Screen{
         stage.addActor(pause);
     }
 
+
+    private void createCollisionListener() {
+        world.setContactListener(new ContactListener() {
+
+            @Override
+            public void beginContact(Contact contact) {
+                //System.out.println("Contact");
+                Fixture fa = contact.getFixtureA();
+                Fixture fb = contact.getFixtureB();
+
+
+                if(fb.getBody().getUserData()=="MissileA" && fa.getBody().getType()== BodyDef.BodyType.StaticBody){
+                    System.out.println(bulletList.size());
+                    System.out.println("the bullet has hit");
+                    if(bulletList.size()!=0){
+                        tobeDeleted.add(bulletList.get(0).getMissileBody());
+                        bulletList.remove(0);
+                    }
+
+                }
+
+                if(fb.getBody().getUserData()=="MissileA" && fa.getBody().getUserData()=="playerb"){
+                    System.out.println("the bullet has hit player2");
+                    playerB.setHealthPoints(15);
+                    if(bulletList.size()!=0){
+                        tobeDeleted.add(bulletList.get(0).getMissileBody());
+                        bulletList.remove(0);
+                    }
+                }
+
+             }
+
+            @Override
+            public void endContact(Contact contact) {
+
+
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+            }
+
+        });
+
+
+    }
+
     @Override
     public void render(float delta) {
         world.step(1/60f,6,2);
         ScreenUtils.clear(0, 0, 0, 1);
         stage.act(delta);
         stage.draw();
+
+
+        createCollisionListener();
+
+
+        if(tobeDeleted.size()!=0) {
+            for (Body body : tobeDeleted) {
+                //System.out.println("Destroying bodies");
+                 world.destroyBody(body);
+            }
+            tobeDeleted.clear();
+            //bulletList.clear();
+        }
 
 
         orthogonalTiledMapRenderer.setView(camera);
@@ -302,36 +383,65 @@ public class GameScreen implements Screen{
                 x.render(batch, playerABody);
             }
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+
+            if(bulletList.size()<1) {
+                if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+                    System.out.println("Shots Fired!");
+                    missileA = playerA.shoot(world);
+                    bulletList.add(missileA);
+                }
+            }else{
+                System.out.println("You cant shoot now!");
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
                 System.out.println("Shots Fired!");
-                missileA = new MissileA(world, playerABody);
-                missileBodyA = missileA.getMissileBody();
-                missileBodyA.createFixture(missileA.getFixture());
-                missileBodyA.createFixture(missileA.getFixture());
-                missileA.launchMissile(missileBodyA);
+                missileA = playerB.shoot(world);
                 bulletList.add(missileA);
             }
+
+
+
+
+
 
 
             batch.begin();
             playerAHud.draw(game.batch, "Player A", 150, 600);
             playerBHud.draw(game.batch, "Player B", 650, 600);
+            playerApower.draw(game.batch,"1",300,50);
+            playerADirection.draw(game.batch,"50",310,50);
             batch.end();
 
             shapeRendererA.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRendererA.setColor(Color.GREEN);
-            shapeRendererA.rect(150, 550, 150, 10);
+            if(playerA.getHealthPoints()<=50){
+                shapeRendererA.setColor(Color.RED);
+            }else if(playerA.getHealthPoints()<=100 && playerA.getHealthPoints()>=50){
+                shapeRendererA.setColor(Color.YELLOW);
+            }else {
+                shapeRendererA.setColor(Color.GREEN);
+            }
+            shapeRendererA.rect(150, 550, playerA.getHealthPoints(), 10);
             shapeRendererA.end();
 
             shapeRendererB.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRendererB.setColor(Color.GREEN);
-            shapeRendererB.rect(650, 550, 150, 10);
+            if(playerB.getHealthPoints()<=50){
+                shapeRendererB.setColor(Color.RED);
+            }else if(playerB.getHealthPoints()<=100 && playerB.getHealthPoints()>50){
+                shapeRendererB.setColor(Color.YELLOW);
+            }
+            else {
+                shapeRendererB.setColor(Color.GREEN);
+            }
+            shapeRendererB.rect(650, 550, playerB.getHealthPoints(), 10);
             shapeRendererB.end();
 
 
 
         }
-    }
+
+        }
+
 
     @Override
     public void resize(int width, int height) {
@@ -357,5 +467,15 @@ public class GameScreen implements Screen{
     public void dispose() {
         texA.dispose();
         tileMaps.dispose();
+        texB.dispose();
+        batch.dispose();
+        world.dispose();
+        playerA.dispose();
+        playerB.dispose();
+        stage.dispose();
+        map.dispose();
+        tileMaps.dispose();
+        playerAHud.dispose();
+        playerBHud.dispose();
     }
 }

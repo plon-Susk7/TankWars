@@ -1,10 +1,11 @@
 package missiles;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.*;
+
+import java.util.ArrayList;
 
 public class MissileA implements Missile {
     public static BodyDef missileDef;
@@ -20,7 +21,7 @@ public class MissileA implements Missile {
         missileDef.position.set(playerBody.getPosition().x+20, playerBody.getPosition().y+10);
         missileDef.fixedRotation = false;
         missileBody= world.createBody(missileDef);
-
+        missileBody.setUserData("MissileA");
         CircleShape circle = new CircleShape();
         circle.setRadius(10f);
 
@@ -43,18 +44,19 @@ public class MissileA implements Missile {
     @Override
     public void render(SpriteBatch batch,Body playerBody){
         batch.begin();
-        System.out.println(playerBody.getPosition());
-        //this.update(delta);
-        // batch.draw(texture,playerBody.getPosition().x-16,playerBody.getPosition().y-16);
         batch.draw(texture, missileBody.getPosition().x,missileBody.getPosition().y);
         batch.end();
+    }
+
+    public void destroyBody(World world){
+        world.destroyBody(missileBody);
     }
 
     @Override
     public void update(float delta){
         missileBody.getPosition().x = missileBody.getLinearVelocity().x*delta;
         missileBody.getPosition().y = missileBody.getLinearVelocity().y*delta;
-        System.out.println(missileBody.getPosition());
+        //System.out.println(missileBody.getPosition());
     }
 
     @Override
