@@ -6,6 +6,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.World;
 import missiles.MissileA;
+import screen.MainMenu;
 
 import static screen.GameScreen.missileBodyA;
 
@@ -60,13 +61,22 @@ public class PlayerA implements Player{
     }
 
     @Override
-    public MissileA shoot(World world) {
+    public MissileA shoot(World world,int strength,int degrees,float currentXPosition,float currentYPoisiton) {
         MissileA missileA;
         missileA = new MissileA(world, body);
         missileBodyA = missileA.getMissileBody();
         missileBodyA.createFixture(missileA.getFixture());
         missileBodyA.createFixture(missileA.getFixture());
-        missileA.launchMissile(missileBodyA);
+        float finalXPosition = currentXPosition + 100*strength;
+        float finalYPosition = currentYPoisiton + 100*strength;
+
+        if(finalYPosition>finalXPosition){
+            finalXPosition+= finalYPosition-finalXPosition;
+        }else{
+            finalYPosition+=finalXPosition-finalYPosition;
+        }
+        System.out.println(currentXPosition+" "+currentYPoisiton);
+        missileA.launchMissile(missileBodyA,finalXPosition,finalYPosition,degrees);
         return missileA;
     }
 

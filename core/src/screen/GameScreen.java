@@ -33,6 +33,10 @@ import players.Player;
 import players.PlayerA;
 import players.PlayerB;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class GameScreen implements Screen{
@@ -61,10 +65,10 @@ public class GameScreen implements Screen{
 
     private Table table1,table2,table3,table4,table5;
     private TextButton forwardButtonA,backButtonA,forwardButtonB,backButtonB,resume,save,backToMenu;
-    private TextButton powerA,directionA,powerB,directionB;
+    private TextButton powerAPlus,powerAMinus,directionAPlus,directionAMinus,powerBPlus,powerBMinus,directionBPlus,directionBMinus;
     private TextButton BackButton;
     private static ShapeRenderer shapeRendererA,shapeRendererB;
-    private static BitmapFont playerAHud,playerBHud,playerApower,playerBpower,playerADirection,playerBDirection;
+    private static BitmapFont playerAHud,playerBHud,playerApower,playerBPower,playerADirection,playerBDirection;
     private static boolean isPause = false;
     static int i = 0;
 
@@ -73,6 +77,8 @@ public class GameScreen implements Screen{
     private static OrthogonalTiledMapRenderer orthogonalTiledMapRenderer;
     private static TileMaps0 tileMaps;
     private static TiledMap map;
+
+    private static int playerA_strength,playerB_strength,playerA_degrees,playerB_degrees;
     public GameScreen(final Tankwars game,ArrayList<Texture> playersTexture){
         this.game = game;
         batch = this.game.batch;
@@ -82,6 +88,10 @@ public class GameScreen implements Screen{
         this.playersTexture = playersTexture;
         this.tileMaps = new TileMaps0();
         this.orthogonalTiledMapRenderer = tileMaps.setupMap();
+        playerA_degrees = 0;
+        playerA_strength = 0;
+        playerB_strength = 0;
+        playerB_degrees = 0;
 
     }
 
@@ -105,6 +115,8 @@ public class GameScreen implements Screen{
 
         playerApower = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
         playerADirection = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
+        playerBPower = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
+        playerBDirection = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
         // Code needed for debugging only
         CircleShape circle = new CircleShape();
         circle.setRadius(20f);
@@ -159,17 +171,28 @@ public class GameScreen implements Screen{
         BackButton = new TextButton("Pause", textButtonStyle);
 
 
-        powerA = new TextButton("Power",textButtonStyle);
-        directionA = new TextButton("Direc",textButtonStyle);
+        powerAMinus = new TextButton("-",textButtonStyle);
+        powerAPlus = new TextButton("+",textButtonStyle);
+        directionAMinus = new TextButton("-",textButtonStyle);
+        directionAPlus = new TextButton("+",textButtonStyle);
 
-        powerB = new TextButton("Power",textButtonStyle);
-        directionB = new TextButton("Direc",textButtonStyle);
 
-        table4.add(powerA).pad(20);
-        table4.add(directionA).pad(20);
+        powerBMinus = new TextButton("-",textButtonStyle);
+        powerBPlus = new TextButton("+",textButtonStyle);
+        directionBMinus = new TextButton("-",textButtonStyle);
+        directionBPlus = new TextButton("+",textButtonStyle);
 
-        table5.add(powerB);
-        table5.add(directionB);
+
+
+        table4.add(powerAMinus).pad(15);
+        table4.add(powerAPlus).pad(15);
+        table4.add(directionAMinus).pad(15);
+        table4.add(directionAPlus).pad(15);
+
+        table5.add(powerBMinus).pad(15);
+        table5.add(powerBPlus).pad(15);
+        table5.add(directionBMinus).pad(15);
+        table5.add(directionBPlus).pad(15);
 
         table1.add(backButtonA).pad(10);
         table1.add(forwardButtonA).pad(10);
@@ -225,12 +248,38 @@ public class GameScreen implements Screen{
         save.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Preferences prefs = Gdx.app.getPreferences("myPrefs");
-                prefs.putInteger("name", i);
-                i++;
+                try {
 
-                prefs.flush();
-                System.out.println(prefs);
+                    BufferedReader reader = new BufferedReader(new FileReader(Gdx.files.internal("savedGames/number.txt").file()));
+                    String number;
+                    int temp = 10;
+                    while((number=reader.readLine())!=null){
+                        System.out.println(number);
+                        temp = Integer.parseInt(number);
+                    }
+                    reader.close();
+
+                    FileWriter tempFile = new FileWriter(Gdx.files.internal("savedGames/number.txt").file());
+                    tempFile.write(Integer.toString(temp+1));
+                    tempFile.close();
+
+                    number = "savedGames/saved"+Integer.toString(temp+1);
+                    System.out.println("File created");
+                    FileWriter writer = new FileWriter(Gdx.files.internal(number).file(),true);
+                    writer.write(Integer.toString(playerA.getHealthPoints())+"\n");
+                    writer.write(Float.toString(playerA.getBody().getPosition().x)+"\n");
+                    writer.write(Float.toString(playerA.getBody().getPosition().y)+"\n");
+
+                    writer.write(Integer.toString(playerB.getHealthPoints())+"\n");
+                    writer.write(Float.toString(playerB.getBody().getPosition().x)+"\n");
+                    writer.write(Float.toString(playerB.getBody().getPosition().y)+"\n");
+
+                    writer.close();
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
 
             }
         });
@@ -249,6 +298,63 @@ public class GameScreen implements Screen{
             public void changed(ChangeEvent event, Actor actor) {
                 pause.setVisible(false);
                 isPause = false;
+            }
+        });
+
+        powerAMinus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerA_strength-=1;
+            }
+        });
+
+        powerAPlus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerA_strength+=1;
+            }
+        });
+
+        directionAMinus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerA_degrees-=1;
+            }
+        });
+
+        directionAPlus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerA_degrees+=1;
+            }
+        });
+
+
+        powerBMinus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerB_strength-=1;
+            }
+        });
+
+        powerBPlus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerB_strength+=1;
+            }
+        });
+
+        directionBMinus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerB_degrees-=1;
+            }
+        });
+
+        directionBPlus.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerB_degrees+=1;
             }
         });
         stage.addActor(pause);
@@ -302,7 +408,50 @@ public class GameScreen implements Screen{
 
         });
 
+        map = tileMaps.getMap();
+        tileMaps.parseTileObjectLayer(world,map.getLayers().get("object").getObjects());
 
+        if(tobeDeleted.size()!=0) {
+            for (Body body : tobeDeleted) {
+                //System.out.println("Destroying bodies");
+                world.destroyBody(body);
+            }
+            tobeDeleted.clear();
+            bulletList.clear();
+        }
+
+
+        //Player Movement
+        forwardButtonA.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerA.moveRight(playerABody);
+            }
+        });
+
+        backButtonA.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerA.moveLeft(playerABody);
+            }
+        });
+
+        forwardButtonB.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerB.moveRight(playerBBody);
+            }
+        });
+
+        backButtonB.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                playerB.moveLeft(playerBBody);
+            }
+        });
+
+
+        //Player Movement
     }
 
     @Override
@@ -315,20 +464,8 @@ public class GameScreen implements Screen{
 
         createCollisionListener();
 
-
-        if(tobeDeleted.size()!=0) {
-            for (Body body : tobeDeleted) {
-                //System.out.println("Destroying bodies");
-                 world.destroyBody(body);
-            }
-            tobeDeleted.clear();
-            //bulletList.clear();
-        }
-
-
         orthogonalTiledMapRenderer.setView(camera);
-        map = tileMaps.getMap();
-        tileMaps.parseTileObjectLayer(world,map.getLayers().get("object").getObjects());
+
         debugRenderer.render(world, camera.combined);
 
         if(isPause==false) {
@@ -337,35 +474,7 @@ public class GameScreen implements Screen{
             playerA.render(batch);
             playerB.render(batch);
 
-            //Player Movement
-            forwardButtonA.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    playerA.moveRight(playerABody);
-                }
-            });
 
-            backButtonA.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    playerA.moveLeft(playerABody);
-                }
-            });
-
-            forwardButtonB.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    playerB.moveRight(playerBBody);
-                }
-            });
-
-            backButtonB.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    playerB.moveLeft(playerBBody);
-                }
-            });
-            //Player Movement
 
 
             //pause screen
@@ -387,7 +496,7 @@ public class GameScreen implements Screen{
             if(bulletList.size()<1) {
                 if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
                     System.out.println("Shots Fired!");
-                    missileA = playerA.shoot(world);
+                    missileA = playerA.shoot(world,playerA_strength,playerA_degrees,playerA.getBody().getPosition().x,playerA.getBody().getPosition().y);
                     bulletList.add(missileA);
                 }
             }else{
@@ -396,7 +505,7 @@ public class GameScreen implements Screen{
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
                 System.out.println("Shots Fired!");
-                missileA = playerB.shoot(world);
+                missileA = playerB.shoot(world,playerB_strength,playerB_degrees,playerB.getBody().getPosition().x,playerB.getBody().getPosition().y);
                 bulletList.add(missileA);
             }
 
@@ -409,8 +518,10 @@ public class GameScreen implements Screen{
             batch.begin();
             playerAHud.draw(game.batch, "Player A", 150, 600);
             playerBHud.draw(game.batch, "Player B", 650, 600);
-            playerApower.draw(game.batch,"1",300,50);
-            playerADirection.draw(game.batch,"50",310,50);
+            playerApower.draw(game.batch,Integer.toString(playerA_strength), 40,58);
+            playerADirection.draw(game.batch,Integer.toString(playerA_degrees),143,58);
+            playerBPower.draw(game.batch,Integer.toString(playerB_strength),800,58);
+            playerBDirection.draw(game.batch,Integer.toString(playerB_degrees),903,58);
             batch.end();
 
             shapeRendererA.begin(ShapeRenderer.ShapeType.Filled);

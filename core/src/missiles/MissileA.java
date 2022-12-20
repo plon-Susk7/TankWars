@@ -37,8 +37,10 @@ public class MissileA implements Missile {
     }
 
     @Override
-    public void launchMissile(Body body){
-        body.setLinearVelocity(Gdx.input.getX(),640 - Gdx.input.getY());
+    public void launchMissile(Body body,float x,float y,float degrees){
+        //body.setLinearVelocity(Gdx.input.getX(),640 - Gdx.input.getY());
+        System.out.println(x+" "+y);
+        body.setLinearVelocity((float)(x/Math.cos(degrees)),(float)(y/Math.sin(degrees)));
     }
 
     @Override
@@ -48,9 +50,7 @@ public class MissileA implements Missile {
         batch.end();
     }
 
-    public void destroyBody(World world){
-        world.destroyBody(missileBody);
-    }
+
 
     @Override
     public void update(float delta){

@@ -6,7 +6,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 
 public interface Missile {
     abstract public FixtureDef getFixture();
-    abstract public void launchMissile(Body body);
+    abstract public void launchMissile(Body body,float x,float y,float degrees);
     abstract public void render(SpriteBatch batch, Body playerBody);
     abstract public void update(float delta);
     abstract  public Body getMissileBody();

@@ -57,13 +57,15 @@ public class PlayerB implements Player{
     }
 
     @Override
-    public MissileA shoot(World world) {
+    public MissileA shoot(World world,int strength,int degrees,float currentXPosition,float currentYPoisiton) {
         MissileA missileA;
         missileA = new MissileA(world, body);
         missileBodyA = missileA.getMissileBody();
         missileBodyA.createFixture(missileA.getFixture());
         missileBodyA.createFixture(missileA.getFixture());
-        missileA.launchMissile(missileBodyA);
+        float finalXPosition = currentXPosition + (float) ((50*strength)* Math.cos(degrees));
+        float finalYPosition = currentYPoisiton + (float)((50*strength)*Math.sin(degrees));
+        missileA.launchMissile(missileBodyA,finalXPosition,finalYPosition,degrees);
         return missileA;
     }
 

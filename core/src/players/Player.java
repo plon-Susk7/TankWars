@@ -11,7 +11,7 @@ public interface Player {
     abstract void moveRight(Body x);
     abstract void render(SpriteBatch batch);
 
-    abstract  MissileA shoot(World world);
+    abstract  MissileA shoot(World world,int strength,int angle,float currentXPosition,float currentYPosition);
 
     abstract public int getHealthPoints();
     abstract  public void setHealthPoints(int x);
