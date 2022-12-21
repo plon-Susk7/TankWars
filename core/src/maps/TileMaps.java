@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class TileMaps {
     private TiledMap maps;
     private static Shape shape;
+    private static int temp; //map index in array
 
     private ArrayList<String> map = new ArrayList<>();
     public TileMaps(){
@@ -24,6 +25,7 @@ public class TileMaps {
 
     public OrthogonalTiledMapRenderer setupMap(){
         int temp = (int)Math.round(Math.random());
+        this.temp = temp;
         System.out.println(temp);
         maps = new TmxMapLoader().load(String.valueOf(Gdx.files.internal(map.get(temp))));
         return new OrthogonalTiledMapRenderer(maps);

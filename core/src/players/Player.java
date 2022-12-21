@@ -10,9 +10,11 @@ public interface Player {
     abstract void moveLeft(Body x);
     abstract void moveRight(Body x);
     abstract void render(SpriteBatch batch);
-
+    abstract public void setInitialHealth(int x);
     abstract  MissileA shoot(World world,int strength,int angle,float currentXPosition,float currentYPosition);
+    public int getMaxMoves();
 
+    public void decrementMoves();
     abstract public int getHealthPoints();
     abstract  public void setHealthPoints(int x);
 

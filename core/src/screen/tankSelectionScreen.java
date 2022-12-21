@@ -138,7 +138,7 @@ public class tankSelectionScreen implements Screen {
                         temp.add(passingArray.get(k));
                     }
                     passingArray.clear();
-                    game.setScreen(new GameScreen(game,temp));
+                    game.setScreen(new GameScreen(game,temp,150,100,500,150,900,500));
 
                 }
             };
@@ -157,7 +157,7 @@ public class tankSelectionScreen implements Screen {
                         temp.add(passingArray.get(k));
                     }
                     passingArray.clear();
-                    game.setScreen(new GameScreen(game,temp));
+                    game.setScreen(new GameScreen(game,temp,150,100,500,150,900,500));
                 }
             };
         });

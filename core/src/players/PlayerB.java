@@ -19,15 +19,18 @@ public class PlayerB implements Player{
 
     private static int healthPoints;
 
-    public PlayerB(World world, Texture tex){
+    private int maxMoves;
+
+    public PlayerB(World world, Texture tex,float xpos,float ypos){
         texture = tex;
         bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(900,500);
+        bodyDef.position.set(xpos,ypos);
         bodyDef.fixedRotation = true;
         body = world.createBody(bodyDef);
         body.setUserData("playerb");
         healthPoints = 150;
+        this.maxMoves = 10;
     }
 
     @Override
@@ -48,6 +51,21 @@ public class PlayerB implements Player{
     }
 
     @Override
+    public void setInitialHealth(int x){
+        healthPoints = x;
+    }
+
+    @Override
+    public int getMaxMoves(){
+        return this.maxMoves;
+    }
+
+    @Override
+    public void decrementMoves(){
+        this.maxMoves -=1;
+    }
+
+    @Override
     public void render(SpriteBatch batch){
         batch.begin();
         Sprite sprite = new Sprite(texture);
@@ -59,13 +77,11 @@ public class PlayerB implements Player{
     @Override
     public MissileA shoot(World world,int strength,int degrees,float currentXPosition,float currentYPoisiton) {
         MissileA missileA;
-        missileA = new MissileA(world, body);
+        missileA = new MissileA(world, body,1);
         missileBodyA = missileA.getMissileBody();
         missileBodyA.createFixture(missileA.getFixture());
         missileBodyA.createFixture(missileA.getFixture());
-        float finalXPosition = currentXPosition + (float) ((50*strength)* Math.cos(degrees));
-        float finalYPosition = currentYPoisiton + (float)((50*strength)*Math.sin(degrees));
-        missileA.launchMissile(missileBodyA,finalXPosition,finalYPosition,degrees);
+        missileA.launchMissile(missileBodyA,degrees,strength,1);
         return missileA;
     }
 

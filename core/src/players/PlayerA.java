@@ -17,15 +17,18 @@ public class PlayerA implements Player{
     private static Body body;
     private static Texture texture;
     private static int healthPoints;
+    private int maxMoves;
 
-    public PlayerA(World world,Texture tex){
+    public PlayerA(World world,Texture tex,float xpos,float ypos){
         texture = tex;
         bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(100,500);
+        bodyDef.position.set(xpos,ypos);
         bodyDef.fixedRotation = true;
         body = world.createBody(bodyDef);
+        body.setUserData("playera");
         healthPoints = 150;
+        this.maxMoves = 10;
     }
 
     @Override
@@ -35,13 +38,12 @@ public class PlayerA implements Player{
 
     @Override
     public void moveLeft(Body x){
-        System.out.println("LEFT PRESSED");
+
         x.setLinearVelocity(-50,0);
     }
 
     @Override
     public void moveRight(Body x){
-        System.out.println("Right PRESSED");
         x.setLinearVelocity(50,0);
     }
 
@@ -56,6 +58,17 @@ public class PlayerA implements Player{
         return healthPoints;
     }
 
+    public int getMaxMoves(){
+        return this.maxMoves;
+    }
+
+    public void decrementMoves(){
+        this.maxMoves -=1;
+    }
+    @Override
+    public void setInitialHealth(int x){
+        healthPoints = x;
+    }
     public void setHealthPoints(int x){
         healthPoints-=x;
     }
@@ -63,20 +76,13 @@ public class PlayerA implements Player{
     @Override
     public MissileA shoot(World world,int strength,int degrees,float currentXPosition,float currentYPoisiton) {
         MissileA missileA;
-        missileA = new MissileA(world, body);
+        missileA = new MissileA(world, body,0);
         missileBodyA = missileA.getMissileBody();
         missileBodyA.createFixture(missileA.getFixture());
         missileBodyA.createFixture(missileA.getFixture());
-        float finalXPosition = currentXPosition + 100*strength;
-        float finalYPosition = currentYPoisiton + 100*strength;
 
-        if(finalYPosition>finalXPosition){
-            finalXPosition+= finalYPosition-finalXPosition;
-        }else{
-            finalYPosition+=finalXPosition-finalYPosition;
-        }
         System.out.println(currentXPosition+" "+currentYPoisiton);
-        missileA.launchMissile(missileBodyA,finalXPosition,finalYPosition,degrees);
+        missileA.launchMissile(missileBodyA,degrees,strength,0);
         return missileA;
     }
 

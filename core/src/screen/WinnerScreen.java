@@ -2,14 +2,11 @@ package screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -17,39 +14,34 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Tankwars;
 
-
-public class MainMenu implements Screen {
+public class WinnerScreen implements Screen {
     final Tankwars game;
     private static OrthographicCamera camera;
-
     private Stage stage;
     private TextureAtlas atlas;
     private Skin skin;
-    private BitmapFont title,black;
-    private Table table;
-    private TextButton buttonPlay,buttonExit,saveButton;
-    private Label heading;
-    private static Texture background;
+    private static BitmapFont black;
+    private static Table table;
+    private TextButton MainMenu;
+    private int winner;
 
+    private static BitmapFont player;
 
-
-
-    public MainMenu(Tankwars game){
+    public WinnerScreen(final Tankwars game,int winner){
         this.game = game;
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 960, 640);
+        this.winner = winner;
     }
+
     @Override
     public void show() {
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
-        background = new Texture(Gdx.files.internal("bg.png"));
         black = new BitmapFont(Gdx.files.internal("black.fnt"),false);
-        title = new BitmapFont(Gdx.files.internal("label.fnt"),false);
         atlas = new TextureAtlas("button.pack");
         skin = new Skin(atlas);
-
-
+        player = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
         table = new Table(skin);
         table.setBounds(0,0,Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
 
@@ -58,59 +50,25 @@ public class MainMenu implements Screen {
         textButtonStyle.down = skin.getDrawable("button.down");
         textButtonStyle.font = black;
 
-        Label.LabelStyle header = new Label.LabelStyle(title, Color.BLACK);
-        heading = new Label("Tank Wars",header);
-        heading.setScale(3);
 
-        buttonPlay = new TextButton("Play",textButtonStyle);
-        buttonExit = new TextButton("Exit",textButtonStyle);
-        saveButton = new TextButton("Saved Games",textButtonStyle);
+        MainMenu = new TextButton("Goto MainMenu",textButtonStyle);
 
 
-        //functionalities
-
-        buttonExit.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Gdx.app.exit();
-            }
-        });
-
-        buttonPlay.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.setScreen(new tankSelectionScreen(game));
-            }
-        });
-
-        buttonExit.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Gdx.app.exit();
-            }
-        });
-
-        saveButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.setScreen(new SavedGameScreen(game));
-            }
-        });
-
-
-
-        table.add(heading);
+        table.add(MainMenu).pad(20);
         table.row();
-        table.add(buttonPlay).pad(20);
-        table.row();
-        table.add(saveButton).pad(20);
-        table.row();
-        table.add(buttonExit).pad(20);
+
+
 
 
         table.setDebug(true);
         stage.addActor(table);
 
+        MainMenu.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                game.setScreen(new MainMenu(game));
+            }
+        });
     }
 
     @Override
@@ -119,15 +77,15 @@ public class MainMenu implements Screen {
 
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
-
         game.batch.begin();
-            game.batch.draw(background,0,0);
+        if(winner==0) {
+            player.draw(game.batch, "Player A Wins the game!", 300, 600);
+        }else{
+            player.draw(game.batch, "Player B Wins the game!", 300, 600);
+        }
         game.batch.end();
         stage.act(delta);
         stage.draw();
-
-
-
     }
 
     @Override
@@ -152,6 +110,8 @@ public class MainMenu implements Screen {
 
     @Override
     public void dispose() {
-
+        stage.dispose();
+        atlas.dispose();
+        black.dispose();
     }
 }

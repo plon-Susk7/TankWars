@@ -27,6 +27,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Tankwars;
+import maps.TileMaps;
 import maps.TileMaps0;
 import missiles.MissileA;
 import players.Player;
@@ -67,7 +68,7 @@ public class GameScreen implements Screen{
     private TextButton forwardButtonA,backButtonA,forwardButtonB,backButtonB,resume,save,backToMenu;
     private TextButton powerAPlus,powerAMinus,directionAPlus,directionAMinus,powerBPlus,powerBMinus,directionBPlus,directionBMinus;
     private TextButton BackButton;
-    private static ShapeRenderer shapeRendererA,shapeRendererB;
+    private static ShapeRenderer shapeRendererA,shapeRendererB,boostRendererA,boostRendererB;
     private static BitmapFont playerAHud,playerBHud,playerApower,playerBPower,playerADirection,playerBDirection;
     private static boolean isPause = false;
     static int i = 0;
@@ -79,7 +80,10 @@ public class GameScreen implements Screen{
     private static TiledMap map;
 
     private static int playerA_strength,playerB_strength,playerA_degrees,playerB_degrees;
-    public GameScreen(final Tankwars game,ArrayList<Texture> playersTexture){
+
+    private static int tankAHealth,tankBHealth;
+    private static float tankAXposition,tankBXposition,tankAYposition,tankBYposition;
+    public GameScreen(final Tankwars game,ArrayList<Texture> playersTexture,int Ahealth,float xAposition,float yAposition,int Bhealth,float xBposition,float yBposition){
         this.game = game;
         batch = this.game.batch;
         debugRenderer = new Box2DDebugRenderer();
@@ -92,7 +96,12 @@ public class GameScreen implements Screen{
         playerA_strength = 0;
         playerB_strength = 0;
         playerB_degrees = 0;
-
+        tankAHealth =Ahealth;
+        tankBHealth = Bhealth;
+        tankAXposition = xAposition;
+        tankAYposition = yAposition;
+        tankBXposition = xBposition;
+        tankBYposition = yBposition;
     }
 
     @Override
@@ -106,9 +115,12 @@ public class GameScreen implements Screen{
 
         shapeRendererA = new ShapeRenderer();
         shapeRendererB= new ShapeRenderer();
+        boostRendererA = new ShapeRenderer();
+        boostRendererB = new ShapeRenderer();
 
-        playerA = new PlayerA(world,playersTexture.get(0));
+        playerA = new PlayerA(world,playersTexture.get(0),tankAXposition,tankAYposition);
         playerABody = playerA.getBody();
+        playerA.setInitialHealth(tankAHealth);
 
         playerAHud = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
         playerBHud = new BitmapFont(Gdx.files.internal("hud.fnt"),false);
@@ -126,8 +138,9 @@ public class GameScreen implements Screen{
         fixtureDef.friction = 5f;
         Fixture fixture = playerABody.createFixture(fixtureDef);
 
-        playerB = new PlayerB(world,playersTexture.get(1));
+        playerB = new PlayerB(world,playersTexture.get(1),tankBXposition,tankBYposition);
         playerBBody = playerB.getBody();
+        playerB.setInitialHealth(tankBHealth);
 
         // Code needed for debugging only
         CircleShape circle1 = new CircleShape();
@@ -269,10 +282,12 @@ public class GameScreen implements Screen{
                     writer.write(Integer.toString(playerA.getHealthPoints())+"\n");
                     writer.write(Float.toString(playerA.getBody().getPosition().x)+"\n");
                     writer.write(Float.toString(playerA.getBody().getPosition().y)+"\n");
+                    writer.write(String.valueOf(playersTexture.get(0))+"\n");
 
                     writer.write(Integer.toString(playerB.getHealthPoints())+"\n");
                     writer.write(Float.toString(playerB.getBody().getPosition().x)+"\n");
                     writer.write(Float.toString(playerB.getBody().getPosition().y)+"\n");
+                    writer.write(String.valueOf(playersTexture.get(0))+"\n");
 
                     writer.close();
 
@@ -390,6 +405,15 @@ public class GameScreen implements Screen{
                     }
                 }
 
+                if(fb.getBody().getUserData()=="MissileA" && fa.getBody().getUserData()=="playera"){
+                    System.out.println("the bullet has hit player1");
+                    playerA.setHealthPoints(15);
+                    if(bulletList.size()!=0){
+                        tobeDeleted.add(bulletList.get(0).getMissileBody());
+                        bulletList.remove(0);
+                    }
+                }
+
              }
 
             @Override
@@ -422,35 +446,49 @@ public class GameScreen implements Screen{
 
 
         //Player Movement
-        forwardButtonA.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                playerA.moveRight(playerABody);
-            }
-        });
+        if(playerA.getMaxMoves()>0) {
+            int j = 0;
+            forwardButtonA.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    System.out.println(playerA.getMaxMoves());
+                    playerA.decrementMoves();
+                    playerA.moveRight(playerABody);
+                }
+            });
 
-        backButtonA.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                playerA.moveLeft(playerABody);
-            }
-        });
+            backButtonA.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    playerA.decrementMoves();
+                    playerA.moveLeft(playerABody);
+                }
+            });
+        }
 
-        forwardButtonB.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                playerB.moveRight(playerBBody);
-            }
-        });
+        if(playerB.getMaxMoves()>0) {
+            forwardButtonB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    playerB.decrementMoves();
+                    playerB.moveRight(playerBBody);
+                }
+            });
 
-        backButtonB.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                playerB.moveLeft(playerBBody);
-            }
-        });
+            backButtonB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    playerB.decrementMoves();
+                    playerB.moveLeft(playerBBody);
+                }
 
-
+            });
+        }
+        if(playerA.getHealthPoints()<=0){
+            game.setScreen(new WinnerScreen(game,0));
+        }else if(playerB.getHealthPoints()<=0){
+            game.setScreen(new WinnerScreen(game,1));
+        }
         //Player Movement
     }
 
@@ -495,12 +533,12 @@ public class GameScreen implements Screen{
 
             if(bulletList.size()<1) {
                 if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-                    System.out.println("Shots Fired!");
+                 //   System.out.println("Shots Fired!");
                     missileA = playerA.shoot(world,playerA_strength,playerA_degrees,playerA.getBody().getPosition().x,playerA.getBody().getPosition().y);
                     bulletList.add(missileA);
                 }
             }else{
-                System.out.println("You cant shoot now!");
+              //  System.out.println("You cant shoot now!");
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
@@ -535,6 +573,11 @@ public class GameScreen implements Screen{
             shapeRendererA.rect(150, 550, playerA.getHealthPoints(), 10);
             shapeRendererA.end();
 
+            boostRendererA.begin(ShapeRenderer.ShapeType.Filled);
+            boostRendererA.setColor(Color.BLUE);
+            boostRendererA.rect(150,540,playerA.getMaxMoves()*10,5);
+            boostRendererA.end();
+
             shapeRendererB.begin(ShapeRenderer.ShapeType.Filled);
             if(playerB.getHealthPoints()<=50){
                 shapeRendererB.setColor(Color.RED);
@@ -546,6 +589,11 @@ public class GameScreen implements Screen{
             }
             shapeRendererB.rect(650, 550, playerB.getHealthPoints(), 10);
             shapeRendererB.end();
+
+            boostRendererB.begin(ShapeRenderer.ShapeType.Filled);
+            boostRendererB.setColor(Color.BLUE);
+            boostRendererB.rect(650,540,playerB.getMaxMoves()*10,5);
+            boostRendererB.end();
 
 
 
