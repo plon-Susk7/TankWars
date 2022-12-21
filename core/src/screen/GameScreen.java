@@ -373,6 +373,56 @@ public class GameScreen implements Screen{
             }
         });
         stage.addActor(pause);
+
+
+            forwardButtonA.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+
+
+                    if(playerA.getMaxMoves()>0) {
+                        playerA.decrementMoves();
+                        playerA.movementAndShooting(2, playerABody, world, 0, 0, 0, 0);
+                    }
+                }
+            });
+
+            backButtonA.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+
+                    if(playerA.getMaxMoves()>0) {
+                        playerA.decrementMoves();
+                        playerA.movementAndShooting(1, playerABody, world, 0, 0, 0, 0);
+                    }
+                }
+
+
+            });
+
+
+        if(playerB.getMaxMoves()>0) {
+            forwardButtonB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    if(playerB.getMaxMoves()>0) {
+                        playerB.decrementMoves();
+                        playerB.movementAndShooting(2, playerBBody, world, 0, 0, 0, 0);
+                    }
+                    }
+            });
+
+            backButtonB.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    if(playerB.getMaxMoves()>0) {
+                        playerB.decrementMoves();
+                        playerB.movementAndShooting(1, playerBBody, world, 0, 0, 0, 0);
+                    }
+                    }
+
+            });
+        }
     }
 
 
@@ -446,44 +496,7 @@ public class GameScreen implements Screen{
 
 
         //Player Movement
-        if(playerA.getMaxMoves()>0) {
-            int j = 0;
-            forwardButtonA.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    System.out.println(playerA.getMaxMoves());
-                    playerA.decrementMoves();
-                    playerA.moveRight(playerABody);
-                }
-            });
 
-            backButtonA.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    playerA.decrementMoves();
-                    playerA.moveLeft(playerABody);
-                }
-            });
-        }
-
-        if(playerB.getMaxMoves()>0) {
-            forwardButtonB.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    playerB.decrementMoves();
-                    playerB.moveRight(playerBBody);
-                }
-            });
-
-            backButtonB.addListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    playerB.decrementMoves();
-                    playerB.moveLeft(playerBBody);
-                }
-
-            });
-        }
         if(playerA.getHealthPoints()<=0){
             game.setScreen(new WinnerScreen(game,0));
         }else if(playerB.getHealthPoints()<=0){

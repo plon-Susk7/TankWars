@@ -30,7 +30,7 @@ public class PlayerB implements Player{
         body = world.createBody(bodyDef);
         body.setUserData("playerb");
         healthPoints = 150;
-        this.maxMoves = 10;
+        this.maxMoves = 30;
     }
 
     @Override
@@ -53,6 +53,21 @@ public class PlayerB implements Player{
     @Override
     public void setInitialHealth(int x){
         healthPoints = x;
+    }
+
+    @Override
+    //facade
+    public void movementAndShooting(int option,Body x,World world,int strength,int degrees,float currentXPosition,float currentYPoisiton){
+        switch (option){
+            case 1:
+                moveLeft(x);
+                break;
+            case 2:
+                moveRight(x);
+                break;
+            case 3:
+                shoot(world,strength,degrees,currentXPosition,currentYPoisiton);
+        }
     }
 
     @Override

@@ -14,8 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Tankwars;
-import players.Player;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

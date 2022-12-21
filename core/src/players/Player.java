@@ -15,6 +15,8 @@ public interface Player {
     public int getMaxMoves();
 
     public void decrementMoves();
+
+    public void movementAndShooting(int option, Body x, World world, int strength, int degrees, float currentXPosition, float currentYPoisiton);
     abstract public int getHealthPoints();
     abstract  public void setHealthPoints(int x);
 
